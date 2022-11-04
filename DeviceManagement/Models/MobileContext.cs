@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -20,6 +18,8 @@ namespace DeviceManagement.Models
 
         public virtual DbSet<Laptop> Laptops { get; set; } = null!;
         public virtual DbSet<Mob> Mobs { get; set; } = null!;
+        public virtual DbSet<Order> Orders { get; set; } = null!;
+        public virtual DbSet<Product> Products { get; set; } = null!;
         public virtual DbSet<User> Users { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -58,6 +58,45 @@ namespace DeviceManagement.Models
                     .IsUnicode(false);
             });
 
+            modelBuilder.Entity<Order>(entity =>
+            {
+                entity.HasKey(e => e.OrderDetailsId)
+                    .HasName("PK__Orders__9DD74DBD655E2BBA");
+
+                entity.Property(e => e.OrderNo).IsUnicode(false);
+
+                entity.Property(e => e.Status)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.HasOne(d => d.Product)
+                    .WithMany(p => p.Orders)
+                    .HasForeignKey(d => d.ProductId)
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .HasConstraintName("FK_Orders_Products");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.Orders)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .HasConstraintName("FK_Orders_Users");
+            });
+
+            modelBuilder.Entity<Product>(entity =>
+            {
+                entity.Property(e => e.Category)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Description).IsUnicode(false);
+
+                entity.Property(e => e.Name)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
+            });
+
             modelBuilder.Entity<User>(entity =>
             {
                 entity.HasIndex(e => e.UserName, "UQ__Users__C9F284566E4CC693")
@@ -92,7 +131,6 @@ namespace DeviceManagement.Models
 
             OnModelCreatingPartial(modelBuilder);
         }
-
         public void DeleteLaptop(int lapId)
         {
             var db = new MobileContext();
@@ -141,14 +179,13 @@ namespace DeviceManagement.Models
             db.Mobs.Add(mobs);
             db.SaveChanges();
         }
-
-        partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
-
         public void PostRegistration(User user)
         {
             var db = new MobileContext();
             db.Users.Add(user);
             db.SaveChanges();
         }
+
+        partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
     }
 }

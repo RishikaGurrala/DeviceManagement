@@ -12,6 +12,7 @@ builder.Services.AddDbContext<MobileContext>(
     options => options.UseSqlServer(builder.Configuration.GetConnectionString("con"))
     );
 builder.Services.AddScoped<IRegistrationService, RegisterService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
